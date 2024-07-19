@@ -30,8 +30,8 @@ class Guest_Posts_Plugin_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
-		self::create_guest_posts_table();
-	}
+        self::create_guest_posts_table();
+    }
 	private static function create_guest_posts_table() {
         global $wpdb;
 
@@ -40,16 +40,22 @@ class Guest_Posts_Plugin_Activator {
 
         $sql = "CREATE TABLE $table_name (
             id int(9) NOT NULL AUTO_INCREMENT,
-            post_title varchar(20) NOT NULL,
+            post_title varchar(255) NOT NULL,
             post_content longtext NOT NULL,
-            author_name varchar(20) NOT NULL,
-            author_email varchar(20) NOT NULL,
+            author_name varchar(255) NOT NULL,
+            author_email varchar(255) NOT NULL,
             submission_date datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
             status varchar(20) DEFAULT 'pending' NOT NULL,
             PRIMARY KEY  (id)
         ) $charset_collate;";
 
-        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-        dbDelta( $sql );
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+
+        if ($wpdb->last_error) {
+            error_log('Error creating table: ' . $wpdb->last_error);
+        } else {
+            error_log('Table created successfully');
+        }
     }
 }

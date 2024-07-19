@@ -47,12 +47,15 @@ class Guest_Posts_Plugin_Public {
 	 * @param      string    $plugin_name       The name of the plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct($plugin_name, $version) {
+        $this->plugin_name = $plugin_name;
+        $this->version = $version;
 
-		$this->plugin_name = $plugin_name;
-		$this->version = $version;
-
-	}
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+        add_shortcode('guest_post_form', array($this, 'add_guest_post_form'));
+        add_action('init', array($this, 'handle_guest_post_submission'));
+    }
 
 	/**
 	 * Register the stylesheets for the public-facing side of the site.
@@ -99,7 +102,7 @@ class Guest_Posts_Plugin_Public {
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/guest-posts-plugin-public.js', array( 'jquery' ), $this->version, false );
 
 	}
-
+	
 	public function render_guest_post_form() {
         ob_start();
         include plugin_dir_path( dirname( __FILE__ ) ) . 'public/partials/guest-posts-plugin-public-display.php';
@@ -107,28 +110,48 @@ class Guest_Posts_Plugin_Public {
     }
 
 	public function handle_guest_post_submission() {
-        if ( isset( $_POST['guest_post_nonce'] ) && wp_verify_nonce( $_POST['guest_post_nonce'], 'submit_guest_post' ) ) {
-            // Form submission logic
+        if (isset($_POST['guest_post_nonce']) && wp_verify_nonce($_POST['guest_post_nonce'], 'submit_guest_post')) {
+            global $wpdb;
+
             $title = sanitize_text_field($_POST['post_title']);
             $content = sanitize_textarea_field($_POST['post_content']);
             $author_name = sanitize_text_field($_POST['author_name']);
             $author_email = sanitize_email($_POST['author_email']);
-            
+            $submission_date = current_time('mysql');
+
             $post_id = wp_insert_post(array(
                 'post_title'    => $title,
                 'post_content'  => $content,
-                'post_status'   => 'draft', // Or 'pending' based on requirement
+                'post_status'   => 'draft',
                 'post_type'     => 'guest_posts',
             ));
 
-            if ( ! is_wp_error($post_id) ) {
-                add_post_meta($post_id, 'author_name', $author_name);
-                add_post_meta($post_id, 'author_email', $author_email);
-                wp_redirect( home_url() ); // Redirect after submission
+            if (!is_wp_error($post_id)) {
+                $table_name = $wpdb->prefix . 'guest_posts';
+
+                $wpdb->insert(
+                    $table_name,
+                    array(
+                        'post_title'      => $title,
+                        'post_content'    => $content,
+                        'author_name'     => $author_name,
+                        'author_email'    => $author_email,
+                        'submission_date' => $submission_date,
+                        'status'          => 'pending',
+                    ),
+                    array(
+                        '%s',
+                        '%s',
+                        '%s',
+                        '%s',
+                        '%s',
+                        '%s',
+                    )
+                );
+
+                wp_redirect(home_url('/thank-you')); // Redirect to a thank you page
                 exit;
             }
         }
-        wp_redirect( home_url() ); // Redirect in case of failure
-        exit;
-    }
+	}	
 }

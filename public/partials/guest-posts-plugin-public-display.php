@@ -14,26 +14,27 @@
 ?>
 
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
+ <h2>Guest Post Form</h2>
 <form id="guest-post-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
     <input type="hidden" name="action" value="submit_guest_post">
     <?php wp_nonce_field( 'submit_guest_post', 'guest_post_nonce' ); ?>
-    <p>
-        <label for="post_title">Title</label>
-        <input type="text" name="post_title" id="post_title" required>
-    </p>
-    <p>
-        <label for="post_content">Content</label>
-        <textarea name="post_content" id="post_content" required></textarea>
-    </p>
-    <p>
-        <label for="author_name">Author Name</label>
-        <input type="text" name="author_name" id="author_name" required>
-    </p>
-    <p>
-        <label for="author_email">Author Email</label>
-        <input type="email" name="author_email" id="author_email" required>
-    </p>
-    <p>
+    <div>
+        <label for="post_title">Title</label><br/>
+        <input type="text" name="post_title" id="post_title" placeholder="Enter Post Title" required>
+    </div>
+    <div>
+        <label for="post_content">Content</label><br/>
+        <textarea name="post_content" id="post_content" placeholder="Enter Post Content" required></textarea>
+    </div>
+    <div>
+        <label for="author_name">Author Name</label><br/>
+        <input type="text" name="author_name" id="author_name" placeholder="Enter Author Name" required>
+    </div>
+    <div>
+        <label for="author_email">Author Email</label><br/>
+        <input type="email" name="author_email" id="author_email" placeholder="Enter Author Email" required>
+    </div>
+    <div>
         <input type="submit" value="Submit">
-    </p>
+    </div>
 </form>
